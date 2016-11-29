@@ -12,6 +12,15 @@ class DetailViewController: UIViewController {
 
     @IBOutlet weak var detailDescriptionLabel: UILabel!
 
+    @IBOutlet weak var productIDlabel: UILabel!
+    
+    @IBOutlet weak var ratingsLabel: UILabel!
+    
+    
+    var reviewer: [String] = []
+    var ratings: [String:Int] = [:]
+    var review_text: [String:String] = [:]
+    var product_name: String = "0767026128"
 
     func configureView() {
         // Update the user interface for the detail item.

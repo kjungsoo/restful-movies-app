@@ -13,22 +13,57 @@ class MasterViewController: UITableViewController {
     var detailViewController: DetailViewController? = nil
     var objects = [Any]()
 
-
+    var reviewer: [String] = []
+    var ratings: [String:Int] = [:]
+    var review_text: [String:String] = [:]
+    var product_name: String = "0767026128"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         self.navigationItem.leftBarButtonItem = self.editButtonItem
-
+        
         let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(insertNewObject(_:)))
         self.navigationItem.rightBarButtonItem = addButton
         if let split = self.splitViewController {
             let controllers = split.viewControllers
             self.detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
         }
-        
-        objects.append("076780192X")
+        json()
+        objects = reviewer
+        //objects.append(product_name)
     }
-
+    
+    //
+    
+    func json() {
+        let datastore_url: URL = URL(string: "http://localhost:8080/product/0767026128/reviews")!
+        
+        let task = URLSession.shared.dataTask(with: datastore_url, completionHandler: { (data, response, error) -> Void in
+            if error != nil {
+                print(error)
+            } else {
+                do {
+                    let object = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments)
+                    self.readJSONobject(object: object as! [String : AnyObject])
+                    
+                } catch let error as NSError {
+                    print(error)
+                }
+            }
+        })
+        task.resume()
+    }
+    
+    func readJSONobject(object: [String: AnyObject]) { //break into smaller dictionaries
+        let reviews = object["reviews"] as! [[String:AnyObject]]
+        for review in reviews {
+            print("\(review) \n")
+            reviewer.append(review["member_id"] as! String)
+            ratings[review["member_id"] as! String] = review["rating"] as! Int?
+            review_text[review["member_id"] as! String] = review["text"] as? String
+        }
+    }
     override func viewWillAppear(_ animated: Bool) {
         self.clearsSelectionOnViewWillAppear = self.splitViewController!.isCollapsed
         super.viewWillAppear(animated)
@@ -55,6 +90,10 @@ class MasterViewController: UITableViewController {
                 controller.detailItem = object
                 controller.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
                 controller.navigationItem.leftItemsSupplementBackButton = true
+                controller.reviewer = self.reviewer
+                controller.ratings = self.ratings
+                controller.review_text = self.review_text
+                controller.product_name = self.product_name
             }
         }
     }
